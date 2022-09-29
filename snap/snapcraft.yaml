@@ -1,0 +1,136 @@
+name: metasploit-framework
+base: core20
+adopt-info: metasploit-framework
+summary: The Metasploit Framework
+description: |
+  The **Metasploit Framework** (MSF) is far more than just a collection of exploits–it is also a solid foundation that you can build upon and easily customize to meet your needs. This allows you to concentrate on your unique target environment and not have to reinvent the wheel. MSF is considered to be one of the single most useful security auditing tools freely available to security professionals today. From a wide array of commercial grade exploits and an extensive exploit development environment, all the way to network information gathering tools and web vulnerability plugins, the Metasploit Framework provides a truly impressive work environment.
+
+  Installation: `snap install metasploit-framework`
+
+  How to use: https://www.offensive-security.com/metasploit-unleashed/
+
+  Issues: https://github.com/JitPatro/metasploit-framework/issues
+
+grade: stable
+confinement: strict
+compression: lzo
+
+########################################################################
+## This is experimental code and will be changed a lot before release ##
+########################################################################
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+  - build-on: i386
+
+assumes:
+  - command-chain
+
+environment:
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
+  TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
+#  HOME: $SNAP_REAL_HOME
+  TEMPDIR: $SNAP_REAL_HOME/Desktop  # TODO: Change this later
+  TMPDIR: $SNAP_REAL_HOME/Desktop
+  TEMP: $SNAP_REAL_HOME/Desktop
+  TMP: $SNAP_REAL_HOME/Desktop
+
+apps:
+
+  msfconsole:
+    command: opt/metasploit-framework/bin/msfconsole
+    plugs: [home, network, network-bind, network-control, desktop]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfbinscan:
+    command: opt/metasploit-framework/bin/msfbinscan
+    plugs: [home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfelfscan:
+    command: opt/metasploit-framework/bin/msfelfscan
+    plugs: [home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfmachscan:
+    command: opt/metasploit-framework/bin/msfmachscan
+    plugs: [home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfpescan:
+    command: opt/metasploit-framework/bin/msfpescan
+    plugs: [home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfrop:
+    command: opt/metasploit-framework/bin/msfrop
+    plugs: [home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfvenom:
+    command: opt/metasploit-framework/bin/msfvenom
+    plugs: [home, network]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfrpc:
+    command: opt/metasploit-framework/bin/msfrpc
+    plugs: [network]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfrpcd:
+    command: opt/metasploit-framework/bin/msfrpcd
+    plugs: [home, network, network-bind]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfd:
+    command: opt/metasploit-framework/bin/msfd
+    plugs: [network, network-bind]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfdb:
+    command: opt/metasploit-framework/bin/msfdb
+    plugs: [network, network-bind, home]
+    command-chain: [usr/bin/snapcraft-runner]
+
+  msfupdate:
+    command: opt/metasploit-framework/bin/msfupdate
+    command-chain: [usr/bin/snapcraft-runner]
+
+package-repositories:
+  - type: apt
+    formats: [deb]
+    suites: [lucid]
+    components: [main]
+    key-id: 09E55FAF4F7862CD6D558997CDFB5FA52007B954
+    url: http://downloads.metasploit.com/data/releases/metasploit-framework/apt
+    architectures: [amd64, arm64, armhf, i386]
+
+parts:
+  launcher:
+    source: snap/local
+    plugin: dump
+    organize:
+      '*': usr/bin/
+
+  metasploit-framework:
+    plugin: nil
+    stage-packages: [metasploit-framework, libfuse2, libncurses-dev]
+    #build-attributes: [keep-execstack]
+    override-stage: |
+      snapcraftctl stage
+      sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/*
+      sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
+      sed -i "198s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/rex-core-0.1.28/lib/rex/compat.rb
+      echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package. Please use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
+      snapcraftctl set-version $(cat $SNAPCRAFT_STAGE/opt/metasploit-framework/embedded/framework/version.yml | grep -E 'major|minor|patch' | awk '{printf $2"."}' | cut -d+ -f1)
+      chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
+    
+    prime:
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.18/build/mips-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.18/build/mips-linux-muslsf/bin/sniffer
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.18/build/mipsel-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.18/build/mipsel-linux-muslsf/bin/sniffer
