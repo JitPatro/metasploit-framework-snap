@@ -23,7 +23,6 @@ architectures:
   - build-on: amd64
   - build-on: arm64
   - build-on: armhf
-  - build-on: i386
 
 assumes:
   - command-chain
@@ -107,7 +106,7 @@ package-repositories:
     components: [main]
     key-id: 09E55FAF4F7862CD6D558997CDFB5FA52007B954
     url: http://downloads.metasploit.com/data/releases/metasploit-framework/apt
-    architectures: [amd64, arm64, armhf, i386]
+    architectures: [amd64, arm64, armhf]
 
 parts:
   launcher:
