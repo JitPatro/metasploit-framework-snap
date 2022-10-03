@@ -130,7 +130,7 @@ parts:
       chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
     
     prime:
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.20/build/mips-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.20/build/mips-linux-muslsf/bin/sniffer
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.20/build/mipsel-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.0.20/build/mipsel-linux-muslsf/bin/sniffer
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/sniffer
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/sniffer
