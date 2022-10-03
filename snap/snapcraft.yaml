@@ -32,6 +32,7 @@ environment:
   LC_ALL: C.UTF-8
   PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
+  EDITOR: nano
 #  HOME: $SNAP_REAL_HOME
   TEMPDIR: $HOME  
   TMPDIR: $HOME
@@ -117,7 +118,7 @@ parts:
 
   metasploit-framework:
     plugin: nil
-    stage-packages: [metasploit-framework, libfuse2, libncurses-dev]
+    stage-packages: [metasploit-framework, libfuse2, libncursesw6, libtinfo6, nano]
     #build-attributes: [keep-execstack]
     override-stage: |
       snapcraftctl stage
@@ -125,12 +126,14 @@ parts:
       sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
       sed -i "198s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/rex-core-*/lib/rex/compat.rb
       sed -i "s#/opt/metasploit-framework/embedded/bin/ruby#/usr/bin/env ruby#g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/bin/*
+      sed -i 's#include "/usr/share#include "/snap/metasploit-framework/current/usr/share#g' ${SNAPCRAFT_STAGE}/etc/nanorc
       echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
-      snapcraftctl set-version $(cat $SNAPCRAFT_STAGE/opt/metasploit-framework/embedded/framework/version.yml | grep -E 'major|minor|patch' | awk '{printf $2"."}' | cut -d+ -f1)
+      #snapcraftctl set-version $(cat $SNAPCRAFT_STAGE/opt/metasploit-framework/embedded/framework/version.yml | grep -E 'major|minor|patch' | awk '{printf $2"."}' | cut -d+ -f1)
+      snapcraftctl set-version $(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }')
       chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
     
     prime:
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/sniffer
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/sniffer
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/sniffer
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/mettle
+      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/sniffer
