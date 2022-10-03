@@ -33,14 +33,16 @@ environment:
   PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
   EDITOR: nano
-#  HOME: $SNAP_REAL_HOME
   TEMPDIR: $HOME  
   TMPDIR: $HOME
   TEMP: $HOME
   TMP: $HOME
+  
+layout:
+  /etc/nanorc:
+    bind-file: $SNAP/etc/nanorc
 
 apps:
-
   msfconsole:
     command: opt/metasploit-framework/bin/msfconsole
     plugs: [home, network, network-bind, network-control, desktop]
