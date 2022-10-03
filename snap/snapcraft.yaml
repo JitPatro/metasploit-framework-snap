@@ -33,10 +33,10 @@ environment:
   PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
 #  HOME: $SNAP_REAL_HOME
-  TEMPDIR: $SNAP_REAL_HOME/Desktop  # TODO: Change this later
-  TMPDIR: $SNAP_REAL_HOME/Desktop
-  TEMP: $SNAP_REAL_HOME/Desktop
-  TMP: $SNAP_REAL_HOME/Desktop
+  TEMPDIR: $HOME  
+  TMPDIR: $HOME
+  TEMP: $HOME
+  TMP: $HOME
 
 apps:
 
