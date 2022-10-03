@@ -125,7 +125,7 @@ parts:
       sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/*
       sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
       sed -i "198s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.0.0/gems/rex-core-0.1.28/lib/rex/compat.rb
-      echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package. Please use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
+      echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
       snapcraftctl set-version $(cat $SNAPCRAFT_STAGE/opt/metasploit-framework/embedded/framework/version.yml | grep -E 'major|minor|patch' | awk '{printf $2"."}' | cut -d+ -f1)
       chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
     
