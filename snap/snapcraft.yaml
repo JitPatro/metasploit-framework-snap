@@ -33,10 +33,11 @@ environment:
   PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
   EDITOR: nano
-  TEMPDIR: $HOME  
-  TMPDIR: $HOME
-  TEMP: $HOME
-  TMP: $HOME
+  HOME: $SNAP_USER_COMMON
+  TEMPDIR: $SNAP_USER_DATA  
+  TMPDIR: $SNAP_USER_DATA
+  TEMP: $SNAP_USER_DATA
+  TMP: $SNAP_USER_DATA
   
 layout:
   /etc/nanorc:
