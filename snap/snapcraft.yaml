@@ -131,12 +131,8 @@ parts:
       sed -i 's#include "/usr/share#include "/snap/metasploit-framework/current/usr/share#g' ${SNAPCRAFT_STAGE}/etc/nanorc
       sed -i '/DEVELOPER_TIPS = \[/,+5d' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
       sed -i 's/ALL_TIPS = COMMON_TIPS + DEVELOPER_TIPS/ALL_TIPS = COMMON_TIPS/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
+      sed -i 's/#{$0}/msfvenom/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/msfvenom
       echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
       snapcraftctl set-version $(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F+ '{ printf "v"$1"-dev" }')
       chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
     
-    prime:
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mips-linux-muslsf/bin/sniffer
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/mettle
-      - -opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/metasploit_payloads-mettle-1.*/build/mipsel-linux-muslsf/bin/sniffer
