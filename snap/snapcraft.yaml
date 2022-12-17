@@ -32,17 +32,13 @@ environment:
   LC_ALL: C.UTF-8
   PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
-  EDITOR: nano
+  EDITOR: vi
   HOME: $SNAP_USER_COMMON
   TEMPDIR: $SNAP_USER_COMMON  
   TMPDIR: $SNAP_USER_COMMON
   TEMP: $SNAP_USER_COMMON
   TMP: $SNAP_USER_COMMON
-  
-layout:
-  /etc/nanorc:
-    bind-file: $SNAP/etc/nanorc
-
+ 
 apps:
   msfconsole:
     command: opt/metasploit-framework/bin/msfconsole
@@ -128,11 +124,14 @@ parts:
       sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
       sed -i "198s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/rex-core-*/lib/rex/compat.rb
       sed -i "s#/opt/metasploit-framework/embedded/bin/ruby#/usr/bin/env ruby#g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/bin/*
-      sed -i 's#include "/usr/share#include "/snap/metasploit-framework/current/usr/share#g' ${SNAPCRAFT_STAGE}/etc/nanorc
       sed -i '/DEVELOPER_TIPS = \[/,+5d' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
       sed -i 's/ALL_TIPS = COMMON_TIPS + DEVELOPER_TIPS/ALL_TIPS = COMMON_TIPS/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
       sed -i 's/#{$0}/msfvenom/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/msfvenom
       echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
       snapcraftctl set-version $(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F+ '{ printf "v"$1"-dev" }')
       chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
+      
+    override-prime: |
+      snapcraftctl prime
+      cd ${SNAPCRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ping,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
     
