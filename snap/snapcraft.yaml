@@ -117,7 +117,7 @@ parts:
 
   metasploit-framework:
     plugin: nil
-    stage-packages: [metasploit-framework, libfuse2, libncursesw6, libtinfo6, nano]
+    stage-packages: [metasploit-framework, libfuse2, libncursesw6, libtinfo6, busybox]
     override-stage: |
       snapcraftctl stage
       sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/*
