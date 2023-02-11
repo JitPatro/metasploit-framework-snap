@@ -734,7 +734,7 @@ module Msf
                 end
                 unless mod_resolved
                   elog("Module #{mod_name} not found, and no loading errors found. If you're using a custom module" \
-                    ' refer to our wiki: https://github.com/rapid7/metasploit-framework/wiki/Running-Private-Modules')
+                    ' refer to our wiki: https://docs.metasploit.com/docs/using-metasploit/intermediate/running-private-modules.html')
 
                   # Avoid trying to use the search result if it exactly matches
                   # the module we were trying to load. The module cannot be
@@ -1495,11 +1495,11 @@ module Msf
           def show_targets(mod) # :nodoc:
             case mod
             when Msf::Exploit
-              mod_targs = Serializer::ReadableText.dump_exploit_targets(mod, '   ')
-              print("\nExploit targets:\n\n#{mod_targs}\n") if (mod_targs and mod_targs.length > 0)
+              mod_targs = Serializer::ReadableText.dump_exploit_targets(mod, '', "\nExploit targets:")
+              print("#{mod_targs}\n") if (mod_targs and mod_targs.length > 0)
             when Msf::Evasion
-              mod_targs = Serializer::ReadableText.dump_evasion_targets(mod, '   ')
-              print("\nEvasion targets:\n\n#{mod_targs}\n") if (mod_targs and mod_targs.length > 0)
+              mod_targs = Serializer::ReadableText.dump_evasion_targets(mod, '', "\nEvasion targets:")
+              print("#{mod_targs}\n") if (mod_targs and mod_targs.length > 0)
             end
           end
 
