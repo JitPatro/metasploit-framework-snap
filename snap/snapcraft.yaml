@@ -24,8 +24,10 @@ architectures:
   - build-on: arm64
   - build-on: armhf
 
+
 assumes:
   - command-chain
+
 
 environment:
   LANG: C.UTF-8
@@ -39,6 +41,16 @@ environment:
   TEMP: $SNAP_USER_COMMON
   TMP: $SNAP_USER_COMMON
  
+# Added a slot for Sliver and other snaps to access Metasploit Framework. 
+slots:
+  metasploit:
+    interface: content
+    content: executables
+    source:
+      read:
+        - $SNAP/opt
+
+
 apps:
   msfconsole:
     command: opt/metasploit-framework/bin/msfconsole
@@ -99,6 +111,7 @@ apps:
     command: opt/metasploit-framework/bin/msfupdate
     command-chain: [usr/bin/snapcraft-runner]
 
+
 package-repositories:
   - type: apt
     formats: [deb]
@@ -107,6 +120,7 @@ package-repositories:
     key-id: 09E55FAF4F7862CD6D558997CDFB5FA52007B954
     url: http://downloads.metasploit.com/data/releases/metasploit-framework/apt
     architectures: [amd64, arm64, armhf]
+
 
 parts:
   launcher:
