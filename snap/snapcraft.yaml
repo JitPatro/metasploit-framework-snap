@@ -158,6 +158,7 @@ parts:
       - --disable-shared
       - --without-zenmap
       - --without-ncat
+      - --without-nping
     build-packages:
       - libssl-dev
       - libpcre3-dev
