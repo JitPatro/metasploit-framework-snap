@@ -159,6 +159,7 @@ parts:
       - --without-zenmap
       - --without-ncat
       - --without-nping
+      - --with-libpcap=included
     build-packages:
       - libssl-dev
       - libpcre3-dev
