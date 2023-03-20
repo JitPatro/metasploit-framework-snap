@@ -156,7 +156,6 @@ parts:
     autotools-configure-parameters:
       - --enable-static
       - --disable-shared
-      - --prefix=${SNAPCRAFT_PART_INSTALL}
       - --without-zenmap
       - --without-ncat
     build-packages:
