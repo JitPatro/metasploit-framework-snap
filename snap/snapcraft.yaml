@@ -32,7 +32,7 @@ assumes:
 environment:
   LANG: C.UTF-8
   LC_ALL: C.UTF-8
-  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
+  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$SNAP/usr/local/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
   EDITOR: vi
   HOME: $SNAP_USER_COMMON
