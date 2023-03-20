@@ -149,3 +149,17 @@ parts:
       snapcraftctl prime
       cd ${SNAPCRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ping,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
     
+  nmap:
+    after: [launcher]
+    source: https://nmap.org/dist/nmap-7.93.tgz
+    plugin: autotools
+    autotools-configure-parameters:
+      - --enable-static
+      - --disable-shared
+      - --prefix=${SNAPCRAFT_PART_INSTALL}
+      - --without-zenmap
+      - --without-ncat
+    build-packages:
+      - libssl-dev
+      - libpcre3-dev
+      - libpcap-dev
