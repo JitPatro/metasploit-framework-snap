@@ -32,7 +32,7 @@ assumes:
 environment:
   LANG: C.UTF-8
   LC_ALL: C.UTF-8
-  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$SNAP/usr/local/bin:$PATH
+  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
   EDITOR: vi
   HOME: $SNAP_USER_COMMON
@@ -128,6 +128,19 @@ parts:
     plugin: dump
     organize:
       '*': usr/bin/
+     
+  nmap:
+    source: https://nmap.org/dist/nmap-7.93.tgz
+    plugin: make
+    build-packages: [build-essential, libssl-dev, upx-ucl]
+
+    override-build: |
+      ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap
+      sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
+      make static
+      strip ./nmap; upx -9 ./nmap
+      mkdir $SNAPCRAFT_PART_INSTALL/bin
+      cp ./nmap $SNAPCRAFT_PART_INSTALL/bin/
 
   metasploit-framework:
     plugin: nil
@@ -149,18 +162,3 @@ parts:
       snapcraftctl prime
       cd ${SNAPCRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
     
-  nmap:
-    after: [launcher]
-    source: https://nmap.org/dist/nmap-7.93.tgz
-    plugin: autotools
-    autotools-configure-parameters:
-      - --enable-static
-      - --disable-shared
-      - --without-zenmap
-      - --without-ncat
-      - --without-nping
-      - --with-libpcap=included
-    build-packages:
-      - libssl-dev
-      - libpcre3-dev
-      - libpcap-dev
