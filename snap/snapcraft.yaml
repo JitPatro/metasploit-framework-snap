@@ -138,7 +138,7 @@ parts:
       ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap
       sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
       make static
-      strip ./nmap; upx -9 ./nmap
+      strip ./nmap
       mkdir $SNAPCRAFT_PART_INSTALL/bin
       cp ./nmap $SNAPCRAFT_PART_INSTALL/bin/
 
