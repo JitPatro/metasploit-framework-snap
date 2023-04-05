@@ -135,12 +135,11 @@ parts:
     build-packages: [build-essential, libssl-dev, upx-ucl]
 
     override-build: |
-      ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap
+      ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${SNAPCRAFT_PART_INSTALL}
       sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
       make static
-      strip ./nmap
-      mkdir $SNAPCRAFT_PART_INSTALL/bin
-      cp ./nmap $SNAPCRAFT_PART_INSTALL/bin/
+      make install
+      cd ${SNACRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
 
   metasploit-framework:
     plugin: nil
