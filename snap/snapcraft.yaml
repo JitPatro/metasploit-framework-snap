@@ -139,7 +139,7 @@ parts:
       sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
       make static
       make install
-      cd ${SNACRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
+      cd ${SNAPCRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
 
   metasploit-framework:
     plugin: nil
