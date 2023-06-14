@@ -2,7 +2,7 @@ require 'rex/post/meterpreter/extensions/stdapi/command_ids'
 require 'rex'
 
 lib = File.join(Msf::Config.install_root, "test", "lib")
-$:.push(lib) unless $:.include?(lib)
+$LOAD_PATH.push(lib) unless $LOAD_PATH.include?(lib)
 require 'module_test'
 
 class MetasploitModule < Msf::Post
@@ -17,7 +17,7 @@ class MetasploitModule < Msf::Post
         'Description' => %q{ This module will test the meterpreter search method },
         'License' => MSF_LICENSE,
         'Author' => [ 'timwr'],
-        'Platform' => [ 'windows', 'linux', 'java' ],
+        'Platform' => [ 'windows', 'linux', 'java', 'osx' ],
         'SessionTypes' => [ 'meterpreter' ]
       )
     )

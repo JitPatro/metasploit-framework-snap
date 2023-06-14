@@ -2,7 +2,7 @@ require 'rex/post/meterpreter/extensions/stdapi/command_ids'
 require 'rex'
 
 lib = File.join(Msf::Config.install_root, "test", "lib")
-$:.push(lib) unless $:.include?(lib)
+$LOAD_PATH.push(lib) unless $LOAD_PATH.include?(lib)
 require 'module_test'
 
 class MetasploitModule < Msf::Post
@@ -17,7 +17,7 @@ class MetasploitModule < Msf::Post
         'Description' => %q{ This module will test meterpreter API methods },
         'License' => MSF_LICENSE,
         'Author' => [ 'egypt'],
-        'Platform' => [ 'windows', 'linux', 'java' ],
+        'Platform' => [ 'windows', 'linux', 'java', 'osx' ],
         'SessionTypes' => [ 'meterpreter' ]
       )
     )
@@ -111,8 +111,7 @@ class MetasploitModule < Msf::Post
 
   def test_net_config
     unless (session.commands.include? Rex::Post::Meterpreter::Extensions::Stdapi::COMMAND_ID_STDAPI_NET_CONFIG_GET_INTERFACES)
-      vprint_status("This meterpreter does not implement get_interfaces, skipping tests")
-      return
+      return skip("This meterpreter does not implement get_interfaces, skipping tests")
     end
 
     vprint_status("Starting networking tests")

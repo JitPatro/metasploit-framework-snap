@@ -20,8 +20,8 @@ class MetasploitModule < Msf::Post
         'Description' => %q{ This module will test Post::File API methods },
         'License' => MSF_LICENSE,
         'Author' => [ 'egypt' ],
-        'Platform' => [ 'windows', 'linux', 'java' ],
-        'SessionTypes' => [ 'meterpreter', 'shell' ]
+        'Platform' => [ 'windows', 'linux', 'unix', 'java', 'osx' ],
+        'SessionTypes' => [ 'meterpreter', 'shell', 'powershell' ]
       )
     )
 
@@ -212,8 +212,9 @@ class MetasploitModule < Msf::Post
 
   def test_binary_files
     # binary_data = ::File.read("/bin/ls")
-    binary_data = ::File.read('/bin/echo')
+    # binary_data = ::File.read('/bin/echo')
     # binary_data = "\xff\x00\xff\xfe\xff\`$(echo blha)\`"
+    binary_data = ((0..255).to_a * 500).shuffle.pack("c*")
     it 'should write binary data' do
       vprint_status "Writing #{binary_data.length} bytes"
       t = Time.now
