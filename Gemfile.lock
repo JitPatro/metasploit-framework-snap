@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    metasploit-framework (6.3.28)
+    metasploit-framework (6.3.30)
       actionpack (~> 7.0)
       activerecord (~> 7.0)
       activesupport (~> 7.0)
@@ -145,9 +145,6 @@ GEM
       aws-sigv4 (~> 1.1)
     aws-sdk-iam (1.79.0)
       aws-sdk-core (~> 3, >= 3.174.0)
-      aws-sigv4 (~> 1.1)
-    aws-sdk-ec2instanceconnect (1.27.0)
-      aws-sdk-core (~> 3, >= 3.165.0)
       aws-sigv4 (~> 1.1)
     aws-sdk-kms (1.66.0)
       aws-sdk-core (~> 3, >= 3.174.0)
@@ -295,8 +292,8 @@ GEM
     network_interface (0.0.2)
     nexpose (7.3.0)
     nio4r (2.5.9)
-    nokogiri (1.15.2)
-      mini_portile2 (~> 2.8.2)
+    nokogiri (1.14.5)
+      mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     nori (2.6.0)
     octokit (4.25.1)
