@@ -135,7 +135,7 @@ parts:
     build-packages: [build-essential, libssl-dev, upx-ucl]
 
     override-build: |
-      if [ `arch` = "x86_64" ]
+      if [ `arch` != "armhf" ]
       then
         ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${SNAPCRAFT_PART_INSTALL}
         sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
