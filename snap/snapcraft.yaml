@@ -135,11 +135,16 @@ parts:
     build-packages: [build-essential, libssl-dev, upx-ucl]
 
     override-build: |
-      ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${SNAPCRAFT_PART_INSTALL}
-      sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
-      make static
-      make install
-      cd ${SNAPCRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
+      if [ `arch` = "x86_64" ]
+      then
+        ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${SNAPCRAFT_PART_INSTALL}
+        sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
+        make static
+        make install
+        cd ${SNAPCRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
+      else
+        echo "Build fails on armhf. Skipping..."
+      fi
 
   metasploit-framework:
     plugin: nil
