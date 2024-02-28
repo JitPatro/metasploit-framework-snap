@@ -10,8 +10,9 @@ class MetasploitModule < Msf::Auxiliary
   include Msf::Exploit::Remote::MYSQL
   include Msf::Auxiliary::Report
   include Msf::Auxiliary::AuthBrute
-
   include Msf::Auxiliary::Scanner
+  include Msf::Sessions::CreateSessionOptions
+  include Msf::Auxiliary::CommandShell
 
   def initialize(info = {})
     super(update_info(info,
@@ -27,16 +28,32 @@ class MetasploitModule < Msf::Auxiliary
       'DefaultOptions' =>
         {
           'USERNAME' => 'root',
-          'BLANK_PASSWORDS' => true
+          'BLANK_PASSWORDS' => true,
+          'CreateSession'  => false
         }
     ))
 
     register_options(
       [
-        Opt::Proxies
+        Opt::Proxies,
       ])
 
-    deregister_options('PASSWORD_SPRAY')
+    options_to_deregister = %w[PASSWORD_SPRAY]
+    if framework.features.enabled?(Msf::FeatureManager::MYSQL_SESSION_TYPE)
+      add_info('New in Metasploit 6.4 - The %grnCreateSession%clr option within this module can open an interactive session')
+    else
+      options_to_deregister << 'CreateSession'
+    end
+    deregister_options(*options_to_deregister)
+  end
+
+  # @return [FalseClass]
+  def create_session?
+    if framework.features.enabled?(Msf::FeatureManager::MYSQL_SESSION_TYPE)
+      datastore['CreateSession']
+    else
+      false
+    end
   end
 
   def target
@@ -55,7 +72,7 @@ class MetasploitModule < Msf::Auxiliary
         scanner = Metasploit::Framework::LoginScanner::MySQL.new(
             host: ip,
             port: rport,
-            proxies: datastore['PROXIES'],
+            proxies: datastore['Proxies'],
             cred_details: cred_collection,
             stop_on_success: datastore['STOP_ON_SUCCESS'],
             bruteforce_speed: datastore['BRUTEFORCE_SPEED'],
@@ -64,6 +81,7 @@ class MetasploitModule < Msf::Auxiliary
             send_delay: datastore['TCP::send_delay'],
             framework: framework,
             framework_module: self,
+            use_client_as_proof: create_session?,
             ssl: datastore['SSL'],
             ssl_version: datastore['SSLVersion'],
             ssl_verify_mode: datastore['SSLVerifyMode'],
@@ -84,6 +102,17 @@ class MetasploitModule < Msf::Auxiliary
             create_credential_login(credential_data)
 
             print_brute :level => :good, :ip => ip, :msg => "Success: '#{result.credential}'"
+
+            if create_session?
+              begin
+                mysql_client = result.proof
+                session_setup(result, mysql_client)
+              rescue ::StandardError => e
+                elog('Failed: ', error: e)
+                print_error(e)
+                result.proof.conn.close if result.proof&.conn
+              end
+            end
           else
             invalidate_login(credential_data)
             vprint_error "#{ip}:#{rport} - LOGIN FAILED: #{result.credential} (#{result.status}: #{result.proof})"
@@ -149,6 +178,23 @@ class MetasploitModule < Msf::Auxiliary
     end
   end
 
+  # @param [Metasploit::Framework::LoginScanner::Result] result
+  # @param [::Mysql] client
+  # @return [Msf::Sessions::MySQL]
+  def session_setup(result, client)
+    return unless (result && client)
 
+    rstream = client.socket || client.io
 
+    my_session = Msf::Sessions::MySQL.new(rstream, { client: client })
+    merging = {
+      'USERPASS_FILE' => nil,
+      'USER_FILE'     => nil,
+      'PASS_FILE'     => nil,
+      'USERNAME'      => result.credential.public,
+      'PASSWORD'      => result.credential.private
+    }
+
+    start_session(self, nil, merging, false, my_session.rstream, my_session)
+  end
 end

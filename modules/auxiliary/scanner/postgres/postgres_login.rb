@@ -13,6 +13,7 @@ class MetasploitModule < Msf::Auxiliary
   include Msf::Auxiliary::Scanner
   include Msf::Auxiliary::Report
   include Msf::Auxiliary::CommandShell
+  include Msf::Sessions::CreateSessionOptions
 
   # Creates an instance of this module.
   def initialize(info = {})
@@ -26,6 +27,7 @@ class MetasploitModule < Msf::Auxiliary
       },
       'Author'         => [ 'todb' ],
       'License'        => MSF_LICENSE,
+      'DefaultOptions' => { 'CreateSession' => false },
       'References'     =>
         [
           [ 'URL', 'https://www.postgresql.org/' ],
@@ -46,11 +48,12 @@ class MetasploitModule < Msf::Auxiliary
       ])
 
     options_to_deregister = %w[SQL PASSWORD_SPRAY]
-    unless framework.features.enabled?(Msf::FeatureManager::POSTGRESQL_SESSION_TYPE)
+    if framework.features.enabled?(Msf::FeatureManager::POSTGRESQL_SESSION_TYPE)
+      add_info('New in Metasploit 6.4 - The %grnCreateSession%clr option within this module can open an interactive session')
+    else
       options_to_deregister << 'CreateSession'
     end
     deregister_options(*options_to_deregister)
-
   end
 
   def create_session?
@@ -73,7 +76,7 @@ class MetasploitModule < Msf::Auxiliary
     scanner = Metasploit::Framework::LoginScanner::Postgres.new(
       host: ip,
       port: rport,
-      proxies: datastore['PROXIES'],
+      proxies: datastore['Proxies'],
       cred_details: cred_collection,
       stop_on_success: datastore['STOP_ON_SUCCESS'],
       bruteforce_speed: datastore['BRUTEFORCE_SPEED'],
