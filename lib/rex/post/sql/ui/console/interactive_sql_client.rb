@@ -80,13 +80,25 @@ module InteractiveSqlClient
 
     finished = false
     begin
+      result = nil
       prompt_proc_before = ::Reline.prompt_proc
       ::Reline.prompt_proc = proc { |line_buffer| line_buffer.each_with_index.map { |_line, i| i > 0 ? 'SQL *> ' : 'SQL >> ' } }
 
       # We want to do this in a loop
+      # multiline_input is the whole string that the user has input, not just the current line.
       raw_query = ::Reline.readmultiline('SQL >> ', use_history = true) do |multiline_input|
         # The user pressed ctrl + c or ctrl + z and wants to background our SQL prompt
-        return { status: :exit, result: nil } unless self.interacting
+        unless self.interacting
+          result = { status: :exit, result: nil }
+          next true
+        end
+
+        # When the user has pressed the enter key with no input, don't run any queries;
+        # simply give them a new prompt on a new line.
+        if multiline_input.chomp.empty?
+          result = { status: :success, result: nil }
+          next true
+        end
 
         # In the case only a stop word was input, exit out of the REPL shell
         finished = (multiline_input.split.count == 1 && stop_words.include?(multiline_input.split.last))
@@ -99,9 +111,13 @@ module InteractiveSqlClient
       ::Reline.prompt_proc = prompt_proc_before
     end
 
+    if result
+      return result
+    end
+
     if finished
       self.interacting = false
-      print_status 'Exiting Shell mode.'
+      print_status 'Exiting Interactive mode.'
       return { status: :exit, result: nil }
     end
 
@@ -116,7 +132,7 @@ module InteractiveSqlClient
 
       if stop_words.include? line.chomp.downcase
         self.interacting = false
-        print_status 'Exiting Shell mode.'
+        print_status 'Exiting Interactive mode.'
         return { status: :exit, result: nil }
       end
 
