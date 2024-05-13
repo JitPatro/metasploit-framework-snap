@@ -109,7 +109,7 @@ parts:
   nmap:
     source: https://nmap.org/dist/nmap-7.95.tgz
     plugin: make
-    build-packages: [automake, build-essential, libssl-dev, python3-setuptools upx-ucl]
+    build-packages: [automake, build-essential, libssl-dev, python3-setuptools, upx-ucl]
 
     override-build: |
       if [ `arch` != "armv7l" ]
