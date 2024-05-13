@@ -48,7 +48,7 @@ class DNS
   def commands
     commands = {}
 
-    if framework.features.enabled?(Msf::FeatureManager::DNS_FEATURE)
+    if framework.features.enabled?(Msf::FeatureManager::DNS)
       commands = {
         'dns' => "Manage Metasploit's DNS resolving behaviour"
       }
@@ -186,7 +186,10 @@ class DNS
   # Manage Metasploit's DNS resolution rules
   #
   def cmd_dns(*args)
-    return if driver.framework.dns_resolver.nil?
+    if driver.framework.dns_resolver.nil?
+      print_warning("Run the #{Msf::Ui::Tip.highlight("save")} command and restart the console for this feature configuration to take effect.")
+      return
+    end
 
     args << 'print' if args.length == 0
     # Short-circuit help
@@ -267,6 +270,7 @@ class DNS
 
         comm = val
       when nil
+        val = 'black-hole' if val.casecmp?('blackhole')
         resolvers << val
       else
         raise ::ArgumentError.new("Unknown flag: #{opt}")
@@ -280,7 +284,12 @@ class DNS
 
     resolvers.each do |resolver|
       unless Rex::Proto::DNS::UpstreamRule.valid_resolver?(resolver)
-        raise ::ArgumentError.new("Invalid DNS resolver: #{resolver}")
+        message = "Invalid DNS resolver: #{resolver}."
+        if (suggestions = Rex::Proto::DNS::UpstreamRule.spell_check_resolver(resolver)).present?
+          message << " Did you mean #{suggestions.first}?"
+        end
+
+        raise ::ArgumentError.new(message)
       end
     end
 
@@ -299,7 +308,7 @@ class DNS
     end
 
     rules.each_with_index do |rule, offset|
-      print_warning("DNS rule #{rule} does not contain wildcards, so will not match subdomains") unless rule.include?('*')
+      print_warning("DNS rule #{rule} does not contain wildcards, it will not match subdomains") unless rule.include?('*')
       driver.framework.dns_resolver.add_upstream_rule(
         resolvers,
         comm: comm_obj,
@@ -317,9 +326,9 @@ class DNS
     print_line @@add_opts.usage
     print_line "RESOLVERS:"
     print_line "  ipv4 / ipv6 address - The IP address of an upstream DNS server to resolve from"
-    print_line "  blackhole           - Drop all queries"
-    print_line "  static              - Reply with statically configured addresses (only for A/AAAA records)"
-    print_line "  system              - Use the host operating systems DNS resolution functionality (only for A/AAAA records)"
+    print_line "  #{Rex::Proto::DNS::UpstreamResolver::Type::BLACK_HOLE.to_s.ljust(19)} - Drop all queries"
+    print_line "  #{Rex::Proto::DNS::UpstreamResolver::Type::STATIC.to_s.ljust(19)    } - Reply with statically configured addresses (only for A/AAAA records)"
+    print_line "  #{Rex::Proto::DNS::UpstreamResolver::Type::SYSTEM.to_s.ljust(19)    } - Use the host operating systems DNS resolution functionality (only for A/AAAA records)"
     print_line
     print_line "EXAMPLES:"
     print_line "  Set the DNS server(s) to be used for *.metasploit.com to 192.168.1.10"
@@ -636,11 +645,16 @@ class DNS
       'SortIndex' => -1,
       'WordWrap'  => false
     )
-    resolver.static_hostnames.each do |hostname, addresses|
-      ipv4_addresses = addresses.fetch(Dnsruby::Types::A, [])
-      ipv6_addresses = addresses.fetch(Dnsruby::Types::AAAA, [])
-      0.upto([ipv4_addresses.length, ipv6_addresses.length].max - 1) do |idx|
-        tbl << [idx == 0 ? hostname : TABLE_INDENT, ipv4_addresses[idx], ipv6_addresses[idx]]
+    resolver.static_hostnames.sort_by { |hostname, _| hostname }.each do |hostname, addresses|
+      ipv4_addresses = addresses.fetch(Dnsruby::Types::A, []).sort_by(&:to_i)
+      ipv6_addresses = addresses.fetch(Dnsruby::Types::AAAA, []).sort_by(&:to_i)
+      if (ipv4_addresses.length <= 1 && ipv6_addresses.length <= 1) && ((ipv4_addresses + ipv6_addresses).length > 0)
+        tbl << [hostname, ipv4_addresses.first, ipv6_addresses.first]
+      else
+        tbl << [hostname, '', '']
+        0.upto([ipv4_addresses.length, ipv6_addresses.length].max - 1) do |idx|
+          tbl << [TABLE_INDENT, ipv4_addresses[idx], ipv6_addresses[idx]]
+        end
       end
     end
     print_line(tbl.to_s)

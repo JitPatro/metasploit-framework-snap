@@ -28,7 +28,7 @@ module Rex
             # The postgresql client context
             self.session = session
             self.client = session.client
-            prompt = "%undPostgreSQL @ #{client.conn.peerinfo} (#{database_name})%clr"
+            prompt = "%undPostgreSQL @ #{client.peerinfo} (#{current_database})%clr"
             history_manager = Msf::Config.postgresql_session_history
             super(prompt, '>', history_manager, nil, :postgresql)
 
@@ -40,6 +40,7 @@ module Rex
 
             enstack_dispatcher(::Rex::Post::PostgreSQL::Ui::Console::CommandDispatcher::Core)
             enstack_dispatcher(::Rex::Post::PostgreSQL::Ui::Console::CommandDispatcher::Client)
+            enstack_dispatcher(Msf::Ui::Console::CommandDispatcher::LocalFileSystem)
 
             # Set up logging to whatever logsink 'core' is using
             if ! $dispatcher['postgresql']
@@ -52,16 +53,6 @@ module Rex
 
           # @return [PostgreSQL::Client]
           attr_reader :client # :nodoc:
-
-          # @return [String]
-          def database_name
-            client.params['database']
-          end
-
-          def format_prompt(val)
-            prompt = "%undPostgreSQL @ #{client.conn.peerinfo} (#{database_name})%clr > "
-            substitute_colors(prompt, true)
-          end
 
           protected
 

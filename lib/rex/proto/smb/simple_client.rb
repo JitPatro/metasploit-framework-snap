@@ -19,10 +19,12 @@ class SimpleClient
   DEFAULT_VERSIONS = [1, 2, 3].freeze
 
   # Public accessors
-  attr_accessor :last_error, :server_max_buffer_size, :address, :port
+  attr_accessor :last_error, :server_max_buffer_size
 
   # Private accessors
   attr_accessor :socket, :client, :direct, :shares, :last_share, :versions
+
+  attr_reader :address, :port
 
   # Pass the socket object and a boolean indicating whether the socket is netbios or cifs
   def initialize(socket, direct = false, versions = DEFAULT_VERSIONS, always_encrypt: true, backend: nil, client: nil)
@@ -214,6 +216,7 @@ class SimpleClient
       end
 
       file_id = self.client.open(path, mode, read: true, write: write || perm.include?('w'))
+
     else
       mode = UTILS.open_mode_to_mode(perm)
       access = UTILS.open_mode_to_access(perm)
@@ -257,6 +260,19 @@ class SimpleClient
     self.client.negotiated_smb_version || -1
   end
 
+  alias peerhost address
+
+  def peerport
+    port.to_i
+  end
+
+  def peerinfo
+    "#{peerhost}:#{peerport}"
+  end
+
+  private
+
+  attr_writer :address, :port
 end
 end
 end

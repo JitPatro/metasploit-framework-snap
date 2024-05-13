@@ -1,5 +1,6 @@
 require 'rex/post/sql/ui/console/command_dispatcher'
 require 'rex/post/sql/ui/console/interactive_sql_client'
+require 'rex/post/session_compatible_modules'
 
 module Rex
   module Post
@@ -12,6 +13,7 @@ module Rex
         module Console
 
           include Rex::Ui::Text::DispatcherShell
+          include Rex::Post::SessionCompatibleModules
 
           # Called when someone wants to interact with an SQL client.  It's
           # assumed that init_ui has been called prior.
@@ -69,12 +71,37 @@ module Rex
             end
           end
 
+          # @param [Hash] opts
+          # @return [String]
+          def help_to_s(opts = {})
+            super + format_session_compatible_modules
+          end
+
+          #
+          # Notification to display when initially interacting with the client via the query_interactive command
+          #
+          # @return [String]
+          def interact_with_client_notification
+            print_status("Starting interactive SQL shell for #{sql_prompt}")
+            print_status('SQL commands ending with ; will be executed on the remote server. Use the %grnexit%clr command to exit.')
+            print_line
+          end
+
+          #
+          # Create prompt via client and session data
+          #
+          # @return [String]
+          def sql_prompt
+            "#{session.type} @ #{client.peerinfo}#{current_database.blank? ? '' : " (#{current_database})"}"
+          end
+
           #
           # Interacts with the supplied client.
           #
           def interact_with_client(client_dispatcher: nil)
             return unless client_dispatcher
 
+            interact_with_client_notification
             client.extend(InteractiveSqlClient) unless client.is_a?(InteractiveSqlClient)
             client.on_command_proc = self.on_command_proc if self.on_command_proc && client.respond_to?(:on_command_proc)
             client.on_print_proc   = self.on_print_proc if self.on_print_proc && client.respond_to?(:on_print_proc)
@@ -83,6 +110,12 @@ module Rex
 
             client.interact(input, output)
             client.reset_ui
+          end
+
+          # @param [Object] val
+          # @return [String]
+          def format_prompt(val)
+            substitute_colors("%und#{sql_prompt}%clr > ", true)
           end
 
           #
@@ -94,6 +127,10 @@ module Rex
             elog(msg, session.type)
 
             dlog("Call stack:\n#{$ERROR_POSITION.join("\n")}", session.type)
+          end
+
+          def current_database
+            client.current_database
           end
         end
       end

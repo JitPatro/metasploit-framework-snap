@@ -17,7 +17,6 @@ module Rex
           require 'rex/post/mysql/ui/console/command_dispatcher/core'
           require 'rex/post/mysql/ui/console/command_dispatcher/client'
 
-
           # Initialize the MySQL console.
           #
           # @param [Msf::Sessions::MySQL] session
@@ -25,8 +24,7 @@ module Rex
             # The mysql client context
             self.session = session
             self.client = session.client
-            self.client.socket ||= self.client.io
-            prompt = "%undMySQL @ #{client.socket.peerinfo} (#{database_name})%clr"
+            prompt = "%undMySQL @ #{client.peerinfo} (#{current_database})%clr"
             history_manager = Msf::Config.mysql_session_history
             super(prompt, '>', history_manager, nil, :mysql)
 
@@ -38,6 +36,7 @@ module Rex
 
             enstack_dispatcher(::Rex::Post::MySQL::Ui::Console::CommandDispatcher::Core)
             enstack_dispatcher(::Rex::Post::MySQL::Ui::Console::CommandDispatcher::Client)
+            enstack_dispatcher(Msf::Ui::Console::CommandDispatcher::LocalFileSystem)
 
             # Set up logging to whatever logsink 'core' is using
             if ! $dispatcher['mysql']
@@ -50,18 +49,6 @@ module Rex
 
           # @return [MySQL::Client]
           attr_reader :client
-
-          # @return [String]
-          def database_name
-            client.database
-          end
-
-          # @param [Object] val
-          # @return [String]
-          def format_prompt(val)
-            prompt = "%undMySQL @ #{client.socket.peerinfo} (#{database_name})%clr > "
-            substitute_colors(prompt, true)
-          end
 
           protected
 

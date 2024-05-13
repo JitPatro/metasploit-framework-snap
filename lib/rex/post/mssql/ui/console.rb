@@ -29,7 +29,7 @@ module Rex
             self.session = session
             self.client = session.client
             envchange = ::Rex::Proto::MSSQL::ClientMixin::ENVCHANGE
-            prompt = "%undMSSQL @ #{client.sock.peerinfo} (#{client.initial_info_for_envchange(envchange: envchange::DATABASE)[:new]})%clr"
+            prompt = "%undMSSQL @ #{client.peerinfo} (#{client.initial_info_for_envchange(envchange: envchange::DATABASE)[:new]})%clr"
             history_manager = Msf::Config.mssql_session_history
             super(prompt, '>', history_manager, nil, :mssql)
 
@@ -41,6 +41,7 @@ module Rex
 
             enstack_dispatcher(::Rex::Post::MSSQL::Ui::Console::CommandDispatcher::Core)
             enstack_dispatcher(::Rex::Post::MSSQL::Ui::Console::CommandDispatcher::Client)
+            enstack_dispatcher(Msf::Ui::Console::CommandDispatcher::LocalFileSystem)
 
             # Set up logging to whatever logsink 'core' is using
             if ! $dispatcher['mssql']
@@ -53,18 +54,6 @@ module Rex
 
           # @return [MSSQL::Client]
           attr_reader :client
-
-          # @return [String]
-          def database_name
-            session.client.query('SELECT DB_NAME();')[:rows][0][0]
-          end
-
-          # @param [Object] val
-          # @return [String]
-          def format_prompt(val)
-            prompt = "%undMSSQL @ #{client.sock.peerinfo} (#{database_name})%clr > "
-            substitute_colors(prompt, true)
-          end
 
           protected
 
