@@ -1,5 +1,5 @@
 name: metasploit-framework
-base: core20
+base: core24
 adopt-info: metasploit-framework
 summary: The Metasploit Framework
 description: |
@@ -13,35 +13,29 @@ description: |
 
 grade: stable
 confinement: strict
-#compression: lzo
 
-########################################################################
-## This is experimental code and will be changed a lot before release ##
-########################################################################
-
-architectures:
-  - build-on: amd64
-  - build-on: arm64
-  - build-on: armhf
-
-
-assumes:
-  - command-chain
+platforms:
+  amd64:
+    build-on: [amd64]
+  arm64:
+    build-on: [arm64]
+  armhf:
+    build-on: [armhf]
 
 
 environment:
   LANG: C.UTF-8
   LC_ALL: C.UTF-8
-  PATH: $SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$PATH
+  PATH: "$SNAP/opt/metasploit-framework/bin:$SNAP/opt/metasploit-framework/embedded/bin:$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
+  LD_LIBRARY_PATH: "${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}$SNAP/lib:$SNAP/usr/lib:$SNAP/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/opt/metasploit-framework/embedded/lib"
   TERMINFO: $SNAP/opt/metasploit-framework/embedded/share/terminfo
   EDITOR: vi
   HOME: $SNAP_USER_COMMON
-  TEMPDIR: $SNAP_USER_COMMON  
+  TEMPDIR: $SNAP_USER_COMMON
   TMPDIR: $SNAP_USER_COMMON
   TEMP: $SNAP_USER_COMMON
   TMP: $SNAP_USER_COMMON
- 
-# Added a slot for Sliver and other snaps to access Metasploit Framework. 
+
 slots:
   metasploit:
     interface: content
@@ -55,61 +49,49 @@ apps:
   msfconsole:
     command: opt/metasploit-framework/bin/msfconsole
     plugs: [home, network, network-bind, network-control, desktop]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfbinscan:
     command: opt/metasploit-framework/bin/msfbinscan
     plugs: [home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfelfscan:
     command: opt/metasploit-framework/bin/msfelfscan
     plugs: [home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfmachscan:
     command: opt/metasploit-framework/bin/msfmachscan
     plugs: [home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfpescan:
     command: opt/metasploit-framework/bin/msfpescan
     plugs: [home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfrop:
     command: opt/metasploit-framework/bin/msfrop
     plugs: [home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfvenom:
     command: opt/metasploit-framework/bin/msfvenom
     plugs: [home, network]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfrpc:
     command: opt/metasploit-framework/bin/msfrpc
     plugs: [network]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfrpcd:
     command: opt/metasploit-framework/bin/msfrpcd
     plugs: [home, network, network-bind]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfd:
     command: opt/metasploit-framework/bin/msfd
     plugs: [network, network-bind]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfdb:
     command: opt/metasploit-framework/bin/msfdb
     plugs: [network, network-bind, home]
-    command-chain: [usr/bin/snapcraft-runner]
 
   msfupdate:
     command: opt/metasploit-framework/bin/msfupdate
-    command-chain: [usr/bin/snapcraft-runner]
 
 
 package-repositories:
@@ -123,25 +105,20 @@ package-repositories:
 
 
 parts:
-  launcher:
-    source: snap/local
-    plugin: dump
-    organize:
-      '*': usr/bin/
-     
+
   nmap:
-    source: https://nmap.org/dist/nmap-7.93.tgz
+    source: https://nmap.org/dist/nmap-7.95.tgz
     plugin: make
-    build-packages: [build-essential, libssl-dev, upx-ucl]
+    build-packages: [automake, build-essential, libssl-dev, upx-ucl]
 
     override-build: |
       if [ `arch` != "armv7l" ]
       then
-        ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${SNAPCRAFT_PART_INSTALL}
+        ./configure --with-libpcap=included --with-libpcre=included --without-nping --without-ncat --without-zenmap --prefix=${CRAFT_PART_INSTALL}
         sed -i 's/OPENSSL_LIBS = -lssl -lcrypto/OPENSSL_LIBS = -lssl -lcrypto -lpthread/g' ./Makefile
         make static
         make install
-        cd ${SNAPCRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
+        cd ${CRAFT_PART_INSTALL}/bin; strip ./nmap; upx -9 ./nmap
       else
         echo "Build fails on armhf. Skipping..."
       fi
@@ -150,19 +127,18 @@ parts:
     plugin: nil
     stage-packages: [metasploit-framework, libfuse2, libncursesw6, libtinfo6, busybox]
     override-stage: |
-      snapcraftctl stage
-      sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/*
-      sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
-      sed -i "s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/rex-core-*/lib/rex/compat.rb
-      sed -i "s#/opt/metasploit-framework/embedded/bin/ruby#/usr/bin/env ruby#g" ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/bin/*
-      sed -i '/DEVELOPER_TIPS = \[/,+5d' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
-      sed -i 's/ALL_TIPS = COMMON_TIPS + DEVELOPER_TIPS/ALL_TIPS = COMMON_TIPS/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
-      sed -i 's/#{$0}/msfvenom/g' ${SNAPCRAFT_STAGE}/opt/metasploit-framework/embedded/framework/msfvenom
-      echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${SNAPCRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
-      snapcraftctl set-version $(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F+ '{ printf "v"$1"-dev" }')
-      chmod +x ${SNAPCRAFT_STAGE}/usr/bin/snapcraft-runner
-      
+      craftctl default
+      sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${CRAFT_STAGE}/opt/metasploit-framework/bin/*
+      sed -i 's#INSTALL_DIR="/opt#INSTALL_DIR="$SNAP/opt#g' ${CRAFT_STAGE}/opt/metasploit-framework/bin/msfdb
+      sed -i "s/'google-chrome'/'xdg-open', 'google-chrome'/g" ${CRAFT_STAGE}/opt/metasploit-framework/embedded/lib/ruby/gems/3.*/gems/rex-core-*/lib/rex/compat.rb
+      sed -i "s#/opt/metasploit-framework/embedded/bin/ruby#/usr/bin/env ruby#g" ${CRAFT_STAGE}/opt/metasploit-framework/embedded/bin/*
+      sed -i '/DEVELOPER_TIPS = \[/,+5d' ${CRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
+      sed -i 's/ALL_TIPS = COMMON_TIPS + DEVELOPER_TIPS/ALL_TIPS = COMMON_TIPS/g' ${CRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
+      sed -i 's/#{$0}/msfvenom/g' ${CRAFT_STAGE}/opt/metasploit-framework/embedded/framework/msfvenom
+      echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${CRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
+      craftctl set version=$(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F+ '{ printf "v"$1"-dev" }')
+
     override-prime: |
-      snapcraftctl prime
-      cd ${SNAPCRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
-    
+      craftctl default
+      mkdir -p ${CRAFT_PRIME}/bin
+      cd ${CRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
