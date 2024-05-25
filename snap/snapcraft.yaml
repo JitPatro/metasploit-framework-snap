@@ -125,7 +125,7 @@ parts:
 
   metasploit-framework:
     plugin: nil
-    stage-packages: [metasploit-framework, libfuse2, libncursesw6, libtinfo6, busybox]
+    stage-packages: [metasploit-framework, libfuse2t64, libncursesw6, libtinfo6, busybox]
     override-stage: |
       craftctl default
       sed -i 's#SCRIPTDIR=/opt#SCRIPTDIR=$SNAP/opt#g' ${CRAFT_STAGE}/opt/metasploit-framework/bin/*
@@ -136,7 +136,7 @@ parts:
       sed -i 's/ALL_TIPS = COMMON_TIPS + DEVELOPER_TIPS/ALL_TIPS = COMMON_TIPS/g' ${CRAFT_STAGE}/opt/metasploit-framework/embedded/framework/lib/msf/ui/tip.rb
       sed -i 's/#{$0}/msfvenom/g' ${CRAFT_STAGE}/opt/metasploit-framework/embedded/framework/msfvenom
       echo -e '#!/bin/sh\n\nset -e\n\necho "msfupdate is no longer supported when Metasploit is installed as a snap package.\nPlease use:- snap refresh metasploit-framework"' > ${CRAFT_STAGE}/opt/metasploit-framework/bin/msfupdate
-      craftctl set version=$(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F+ '{ printf "v"$1"-dev" }')
+      craftctl set version=$(cd ../parts/metasploit-framework/stage_packages/ && ls metasploit* | awk -F_ '{ printf $2 }' | awk -F~ '{ printf "v"$1"-dev" }')
 
     override-prime: |
       craftctl default
