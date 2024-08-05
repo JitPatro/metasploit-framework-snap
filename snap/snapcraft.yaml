@@ -141,4 +141,4 @@ parts:
     override-prime: |
       craftctl default
       mkdir -p ${CRAFT_PRIME}/bin
-      cd ${CRAFT_PRIME}/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
+      cd ${CRAFT_PRIME}/usr/bin; for binary in {awk,cat,chmod,chown,clear,cp,cut,date,diff,echo,find,grep,head,hexdump,ip,ls,mkdir,mv,netstat,nslookup,ps,pwd,rm,sed,sleep,sort,tail,tar,tee,touch,tr,vi,wc,wget,which,whoami,xxd}; do ln -sf busybox $binary; done
