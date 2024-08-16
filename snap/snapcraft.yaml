@@ -93,7 +93,10 @@ apps:
   msfupdate:
     command: opt/metasploit-framework/bin/msfupdate
 
-
+lint:
+  ignore:
+    - library
+    
 package-repositories:
   - type: apt
     formats: [deb]
