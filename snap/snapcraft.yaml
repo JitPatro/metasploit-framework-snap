@@ -102,7 +102,7 @@ package-repositories:
     formats: [deb]
     suites: [lucid]
     components: [main]
-    key-id: 09E55FAF4F7862CD6D558997CDFB5FA52007B954
+    key-id: 97B32012EA1176F053727A95C048F0B49DEEC457
     url: http://downloads.metasploit.com/data/releases/metasploit-framework/apt
     architectures: [amd64, arm64, armhf]
 
